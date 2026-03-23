@@ -1,0 +1,16 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+
+# Terraform lock (иногда оставляют, но можно игнорить)
+.terraform.lock.hcl
+
+# Sensitive
+*.tfvars
+*.tfvars.json
+
+# План
+*.tfplan.terraform/
+*.tfstate
