@@ -1,71 +1,63 @@
-# Azure VM — Terraform (Test Task)
+# uitware-test-task
 
-Terraform IaC for provisioning a Linux virtual machine on Microsoft Azure. Provisions full networking (VNet, subnet, NSG) and a VM from an Azure Community Gallery image.
+Terraform IaC for the Uitware test task. Provisions a Linux VM on Microsoft Azure from a pre-built community gallery image.
+
+## Stack
+
+| Tool | Purpose |
+|------|---------|
+| Terraform | Infrastructure as Code |
+| Azure (azurerm >= 3.116.0) | Cloud provider |
+| Azure Linux VM (Standard_D2s_v3) | Virtual machine |
+| Community Gallery Image | devops-growth-v3 (pre-configured DevOps environment) |
 
 ## Resources Provisioned
 
 ```
-Resource Group: rg-uitware-task (polandcentral)
-  │
-  ├── Virtual Network        10.0.0.0/16
-  │     └── Subnet           10.0.1.0/24
-  │
-  ├── Public IP              Static, Standard SKU
-  │
-  ├── Network Security Group
-  │     ├── Inbound: SSH (22)
-  │     ├── Inbound: HTTP (80)
-  │     └── Inbound: HTTPS (443)
-  │
-  ├── Network Interface      + NSG association
-  │
-  └── Linux VM               Standard_D2s_v3, SSH key auth
-        └── OS Disk          Standard_LRS
-        └── Image            Community Gallery (devops-growth-v3 1.0.0)
+Resource Group          rg-uitware-task  (polandcentral)
+  └── Virtual Network   10.0.0.0/16
+        └── Subnet      10.0.1.0/24
+  └── Public IP         Static, Standard SKU
+  └── NSG               Allows SSH (22), HTTP (80), HTTPS (443) inbound
+  └── Network Interface + NSG association
+  └── Linux VM          Standard_D2s_v3, SSH key auth, Standard_LRS OS disk
 ```
 
-## Tech Stack
+**Image source:** Azure Community Gallery
+`devopsgrowth / devops-growth-v3 / 1.0.0`
 
-- **IaC:** Terraform (`azurerm` provider ≥ 3.116.0)
-- **Cloud:** Microsoft Azure
-- **VM Size:** Standard_D2s_v3 (2 vCPU, 8 GB RAM)
-- **Image:** Azure Community Gallery — `devopsgrowth/devops-growth-v3/1.0.0`
-- **Auth:** SSH public key (no password)
+## Quick Start
 
-## Prerequisites
-
-- Azure CLI installed and authenticated (`az login`)
-- Terraform ≥ 1.0
-- SSH key pair
-
-## Deploy
+**Prerequisites:** Azure CLI authenticated, Terraform
 
 ```bash
-# Generate SSH key if needed
-ssh-keygen -t rsa -b 4096 -f ~/.ssh/uitware_key
+# Generate SSH key (if not already done)
+ssh-keygen -t rsa -b 4096 -f ~/.ssh/uitware_task_key
 
 # Deploy
 terraform init
 terraform plan
 terraform apply
 
-# Get public IP and connect
-terraform output public_ip
-ssh <admin_username>@<public-ip> -i ~/.ssh/uitware_key
+# Connect
+terraform output   # get public IP
+ssh uitware_user@<public-ip> -i ~/.ssh/uitware_task_key
 ```
 
 ## Variables
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `resource_group_name` | `rg-uitware-task` | Azure resource group |
+| `resource_group_name` | `rg-uitware-task` | Azure resource group name |
 | `location` | `polandcentral` | Azure region |
-| `vm_name` | `uitware-vm` | VM name |
-| `admin_username` | — | Linux admin user |
-| `public_key_path` | `~/.ssh/uitware_key.pub` | SSH public key path |
+| `vm_name` | `uitware-vm` | VM name (used as prefix for all resources) |
+| `admin_username` | `uitware_user` | Linux admin user |
+| `public_key_path` | `~/.ssh/uitware_task_key.pub` | Path to SSH public key |
 
-## Cleanup
+## File Structure
 
-```bash
-terraform destroy
+```
+main.tf        # All Azure resources
+variables.tf   # Input variables
+outputs.tf     # Public IP output
 ```
